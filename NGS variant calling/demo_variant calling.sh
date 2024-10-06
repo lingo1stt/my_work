@@ -6,12 +6,29 @@ source /sharedata/MISC/setJava8.bsh
 ### remove duplicated reads
 java -jar gatk-package-4.3.0.0-local.jar MarkDuplicatesSpark -I ~/samtools-1.9/L294_sorted.bam -O L294_marked.bam -M L294_duplicate.matrix.txt --tmp-dir ~/tmp
 
+### use GNU parallel to conduct haplotypecaller with multiple thread
+if ! command -v parallel &> /dev/null
+then
+	echo "GNU Parallel is installing..."
+	sudo apt-get install -y parallel
+fi
+
 ### do haplotype calling using HaplotypeCaller (Sample L_294 for example)
 java -jar gatk-package-4.3.0.0-local.jar HaplotypeCaller -R ~/OsNB1.0.fa -I L294_marked.bam -O L294.gvcf -ERC GVCF
 
-### Combine all gvcf file of samples together
-java -jar gatk-package-4.3.0.0-local.jar CombineGVCFs -R ~/OsNB1.0.fa -V L190.gvcf -V L210.gvcf -V L214.gvcf -V L238.gvcf -V L244.gvcf -V L245.gvcf -V L265.gvcf -V L282.gvcf -V L291.gvcf -V L294.gvcf -V L295.gvcf -V L317.gvcf -V S167.gvcf -V S172.gvcf -V S188.gvcf -V S200.gvcf -V S224.gvcf -V S242.gvcf -V S256.gvcf -V S267.gvcf -V S273.gvcf -V S281.gvcf -V S283.gvcf -V S284.gvcf -O sample.gvcf
+### do haplotype calling using HaplotypeCaller with multiple threads
+mkdir "gvcf"
+find . -type f -name "*.bam" > bam_name.txt
+cat bam_name.txt | parallel -j 8 "java -jar gatk-package-4.3.0.0-local.jar HaplotypeCaller -R ~/OsNB1.0.fa -I {} -O ~/gatk-4.3.0.0/gvcf/{.}.gvcf -ERC GVCF"
 
+
+### Combine all gvcf file of samples together
+#list all the file in the gvcf_name.txt and combine them into one sample.gvcf
+find ~/gatk-4.0.0.0/gvcf -type f -name "*.gvcf" > gvcf_name.txt
+java -jar gatk-package-4.3.0.0-local.jar CombineGVCFs \
+       	-R ~/OsNB1.0.fa \
+	-V ~/gatk-4.0.0.0/gvcf_name.txt \
+	-O sample.gvcf
 ### genotype Gvcf
 java -jar gatk-package-4.3.0.0-local.jar GenotypeGVCFs -R ~/OsNB1.0.fa -V sample.gvcf -O sample_genotype.gvcf
 
