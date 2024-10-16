@@ -76,6 +76,7 @@ sub input{
         print("\n\n");
 	for ($x = 1; $x < @seq; $x++) {
                 $file_name = $seq[$x];
+                if (open($FILE, '<', $file_name)){
 		open FILE, $file_name;
 		while(<FILE>) {
 			chomp;
@@ -88,6 +89,11 @@ sub input{
                         print "Warning: Only accept nucleotide sequence fasta file.\n\n";
                         $option = 1;
                 }
+                }else{
+                        print "Error: Could not open file '$file_name'. Please check if the file exists.\n";
+                        $option = 0;
+                        return $option;
+                        }
 	}
         ###列出總共有幾個fasta sequence
         $len = scalar(keys(%data));
