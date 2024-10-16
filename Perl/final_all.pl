@@ -33,41 +33,76 @@ sub menu{
         }
 	return $option;
 }
-#假設input的fasta file以hash形式儲存:假設叫做%data = qw(SEQ1 seq1 SEQ2 seq2 SEQ3 seq3)
-
+#假設input的fasta file以hash形式儲存:假設叫做%data = qw(SEQ1 seq1 SEQ2 seq2 SEQ3 seq3)	
 ## 1) Input
 sub input{
-        ##現在有個問題是只要一進來上次的輸入數據就會被覆蓋
         $count = 0;
+        if (%data){  
+			while (1){
+                                print"sequence data already exist, do you want to renew it? (y/n)\n";
+				$ans = <STDIN>;
+                                chomp $ans;
+                        
+			if($ans eq "y"){
+				#當ans為y時，重新從第一個開始輸入
+				$seq_amount = $count;
+                                %data = ();
+                                $seq = ();
+				last;
+			}elsif($ans eq "n"){
+				$seq_amount = scalar(keys %data) ;
+				last;
+			        }else{print"invalid input, please enter y/n\n\n";}
+                        
+                        }
+		}else{$seq_amount = 0;}
+
         while ($count+1){
-                $num = $count + 1;
-                print "Input sequence $num fasta file (F to finish): ";
-                $seq[$count] = <STDIN>;
-                chomp $seq[$count];
-                if ($seq[$count] eq "F"){splice (@seq, -1); last;}
-                unless ($seq[$count] ne ""){next;}
+		
+		##############################################################
+		
+                print "Input fasta file name(F to finish)($seq_amount sequences already existed): ";
+		###建立seq變數儲存input
+                ##index代表seq array中儲存file name的位置
+                $index = $count+$seq_amount+1;
+                $file_name = <STDIN>;
+                chomp $file_name;
+		$seq[$index] = $file_name . ".fasta";
+                if ($seq[$index] eq "F.fasta"){splice (@seq, -1); last;}
+                unless ($seq[$index] ne ""){next;}
                 $count++;
-        }
-        if ($count == 1){print "Warning: There is only one sequence inputted, [Blast] would unable to be use.\n"}
-        
-	for ($x = 0; $x < $count; $x++) {
-		$name{$x} = $data{$x} = "";
-                open FILE, $seq[$x];
+        }       
+        #if ($count == 1){print "Warning: There is only one sequence inputted, [Blast] would unable to be use.\n"}
+        print("\n\n");
+	for ($x = 1; $x < @seq; $x++) {
+                $file_name = $seq[$x];
+		open FILE, $file_name;
 		while(<FILE>) {
 			chomp;
-                        if (/>(\S+)/) {$name{$x} = $1; next;}
-			$data{$x} .= $_;
+                        if (/>(.+)/) {$name = $1; next;}
+			$data{$name} .= $_;
 		}
 		close FILE;
-                unless ($data{$x} ne ""| $data{$x} =~ /[ATCG]/){
+                unless ($data{$name} ne ""| $data{$name} =~ /[ATCG]/){
                         print "There are some problem in [$seq[$x]], please check and try again.\n";
                         print "Warning: Only accept nucleotide sequence fasta file.\n\n";
-                        $option = 1; 
-                        return;
+                        $option = 1;
                 }
 	}
+        ###列出總共有幾個fasta sequence
+        $len = scalar(keys(%data));
+        print"######################################\n";
+        print"Input results:\n";
+        print"######################################\n";
+        print("Total input of $len sequences:\n\n" );
+        for $x(sort{$a cmp $b} keys %data){
+                print"> $x\n";
+                print"$data{$x}\n"
+        }
+        print "\n\nPress enter to continue...\n";
+        <STDIN>;
         $option = 0;
-        return $input;
+        return $option;
 }
 
 ## 2) Status
@@ -78,7 +113,7 @@ sub status {
          print "Here are the sequences you have inputted:\n";
          for $key (sort {$a <=> $b} keys %data){
          my $num = $key +1;
-        $length = length $data{$key};
+        $length = length( $data{$key});
         print " SEQ$num : $data{$key}\n";
         print "length : $length\n"; }
         $option = 0;
@@ -287,3 +322,7 @@ sub GC_content {
         $option = 0;
         return;
 }
+
+
+###檢查Data情形
+
