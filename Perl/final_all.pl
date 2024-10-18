@@ -2,7 +2,7 @@ $option = 0;
 while ($option =~ /[0-8]/){
                 if($option == 0){&menu();}
                 if($option == 1){&input();}
-                if($option == 2){& status();}
+                if($option == 2){&status();}
                 if($option == 3){&remove();}
                 if($option == 4){&blast();}
                 if($option == 5){&reverse_complement();}
@@ -37,6 +37,8 @@ sub menu{
 ## 1) Input
 sub input{
         $count = 0;
+        $seq = ();
+        $index_seq = @seq;
         if (%data){  
 			while (1){
                                 print"sequence data already exist, do you want to renew it? (y/n)\n";
@@ -64,18 +66,21 @@ sub input{
                 print "Input fasta file name(F to finish)($seq_amount sequences already existed): ";
 		###建立seq變數儲存input
                 ##index代表seq array中儲存file name的位置
-                $index = $count+$seq_amount+1;
+                
+                $index = $count;
+                print"index: $index\n\n";
                 $file_name = <STDIN>;
                 chomp $file_name;
-		$seq[$index] = $file_name . ".fasta";
-                if ($seq[$index] eq "F.fasta"){splice (@seq, -1); last;}
-                unless ($seq[$index] ne ""){next;}
+                if ($file_name eq "F"){last;}
+                unless ($file_name ne ""){pop @seq; next;}
+                $seq[$index] = $file_name . ".fasta";
                 $count++;
         }       
         #if ($count == 1){print "Warning: There is only one sequence inputted, [Blast] would unable to be use.\n"}
         print("\n\n");
-	for ($x = 1; $x < @seq; $x++) {
+	for ($x = 0; $x < @seq; $x++) {
                 $file_name = $seq[$x];
+                ##如果讀取FILE 失敗，則列出警示訊息
                 if (open($FILE, '<', $file_name)){
 		open FILE, $file_name;
 		while(<FILE>) {
@@ -90,61 +95,81 @@ sub input{
                         $option = 1;
                 }
                 }else{
-                        print "Error: Could not open file '$file_name'. Please check if the file exists.\n";
-                        $option = 0;
-                        return $option;
+                        print "WARNING: Could not open file '$file_name'. Please check if the file exists.\n\n";
+                        next;
                         }
 	}
-        ###列出總共有幾個fasta sequence
+
+        print "\n\nSuccessfuly input the data. Press enter to continue...\n";
+        <STDIN>;
+        $option = 0;
+        return $option;
+}
+
+## 2) check status
+sub status{
         $len = scalar(keys(%data));
         print"######################################\n";
         print"Input results:\n";
         print"######################################\n";
         print("Total input of $len sequences:\n\n" );
-        for $x(sort{$a cmp $b} keys %data){
-                print"> $x\n";
-                print"$data{$x}\n"
+        for my $k(keys %data){
+                $lll = length $data{$k};
+                print">$k\n";
+                print"length:$lll\n";
+                print"$data{$k}\n\n";
         }
         print "\n\nPress enter to continue...\n";
         <STDIN>;
         $option = 0;
         return $option;
 }
-
-## 2) Status
-sub status {
-         unless (keys %data){
-                print "Please input data first.\n";
-                &input(); }
-         print "Here are the sequences you have inputted:\n";
-         for $key (sort {$a <=> $b} keys %data){
-         my $num = $key +1;
-        $length = length( $data{$key});
-        print " SEQ$num : $data{$key}\n";
-        print "length : $length\n"; }
-        $option = 0;
-        return;}
-
 ## 3) Remove
 sub remove {
         unless (keys %data){
                 print "You don't have imputed any sequence\n";
                 $option = 0;
                 return;}
-        print "Are you sure you want to remove the sequence? (yes or no)\n";
+        print"#######################################################################\n";
+        print "Enter the name of the text file (.txt) containing the name of the sequence you want to delete (F to return to menu). \n";
+        print"#######################################################################\n";
         $answer = <STDIN>;
+
         chomp $answer;
-        if ($answer eq "yes"){
-        for $key (keys %data){
-                delete $data{$key};}}
-        print "Your sequences status are as follow\n";
-        if (keys %data){
-                for $key (sort {$a <=> $b} keys %data){
-                my $num = $key +1;
-                print "SEQ$num :  $data{$key}\n";}}
-                else {print "There's no sequence now!\n";}
-        $option = 0;
-        return;}
+        if ($answer eq "F"){
+                $option = 0;
+                return $option;
+        }
+        $file_to_remove = $answer.".txt";
+        print"\e[31mResults:\n";
+        print"\e[0m\n";
+        if (open($FILE, '<', $file_to_remove)){
+                ###delete the key
+                open FILE, $file_to_remove;
+                while(<FILE>){
+                        chomp;
+                        if (exists $data{$_}){
+                                delete $data{$_};
+                                print "Deleted key: $_\n";
+                        }else{
+                                print "Key '$_' not found in data.\n";
+                        }
+                }
+                close FILE;
+                #oberve
+                $seq_amount_2 = keys %data;
+                print"\nSequence successfully removed. $seq_amount_2 sequences remained.\n";
+                print"#######################\n";
+                $option = 0;
+                return $option;
+
+        }else{
+                print"Warning: $answer.txt does not exist. Please retry\n\n";
+                $option = 3;
+                return $option;
+        }
+
+}
 
 
 
