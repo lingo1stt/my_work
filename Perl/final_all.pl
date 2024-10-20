@@ -10,8 +10,7 @@ while ($option =~ /[0-8]/){
                 if($option == 5){&reverse_complement();}
                 if($option == 6){&amino();}
                 if($option == 7){&GC_content();}
-                if($option == 8){&global();}
-                if($option == 9){die();}
+                if($option == 8){die();}
         }
 
 
@@ -25,10 +24,9 @@ sub menu{
         print "5) Reverse complement sequence\n";
         print "6) Convert sequences to amino acid\n";
         print "7) GC content\n";
-        print "8) Global alignment\n";
-	print "9) Exit\n";
+	print "8) Exit\n";
         print "************************************\n";
-        print "choose your option(1-9):";
+        print "choose your option(1-8):";
         $option = <STDIN>;
         chomp $option;
         unless ($option =~ /^\d+$/ && $option >=1 && $option <=8){
@@ -382,7 +380,3 @@ sub GC_content {
         $option = 0;
         return;
 }
-
-
-###檢查Data情形
-
