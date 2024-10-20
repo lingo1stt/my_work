@@ -1,3 +1,5 @@
+###在print前加上\e[31m可顯示紅色; \e[0m 可重製; \e[34m為藍色 ; \e[32m為綠色
+
 $option = 0;
 while ($option =~ /[0-8]/){
                 if($option == 0){&menu();}
@@ -8,7 +10,8 @@ while ($option =~ /[0-8]/){
                 if($option == 5){&reverse_complement();}
                 if($option == 6){&amino();}
                 if($option == 7){&GC_content();}
-                if($option == 8){die();}
+                if($option == 8){&global();}
+                if($option == 9){die();}
         }
 
 
@@ -22,9 +25,10 @@ sub menu{
         print "5) Reverse complement sequence\n";
         print "6) Convert sequences to amino acid\n";
         print "7) GC content\n";
-	print "8) Exit\n";
+        print "8) Global alignment\n";
+	print "9) Exit\n";
         print "************************************\n";
-        print "choose your option(1-8):";
+        print "choose your option(1-9):";
         $option = <STDIN>;
         chomp $option;
         unless ($option =~ /^\d+$/ && $option >=1 && $option <=8){
@@ -72,7 +76,7 @@ sub input{
                 $file_name = <STDIN>;
                 chomp $file_name;
                 if ($file_name eq "F"){last;}
-                unless ($file_name ne ""){pop @seq; next;}
+                unless ($file_name ne ""){next;}
                 $seq[$index] = $file_name . ".fasta";
                 $count++;
         }       
@@ -175,28 +179,42 @@ sub remove {
 
 ## 4) Blast
 sub blast {
+        ###為了讓使用者輸入數字，創立name array
+        $name = ();
+        my @name = keys %data;
         unless (keys %data){
                 print "Please input data first.\n";
                 &input();
         }
-        if ($count == 1){
-                print "You cannot use Blast with only one sequence. Try other fuctions.\n";
-                $option = 0;
-                return;
-        }
-        print "\nHere are the sequences you have inputted:\n";
-        for $key (sort {$a <=> $b} keys %data){
-                my $num = $key +1;
-                print "$num  $name{$key}\n";
-        }
-        print "Pick the query sequence(select by number):";
-        chomp($input_Q = <STDIN>);
-        unless ($input_Q =~ /^\d+$/ && $input_Q <= $count){print "No such sequence exist. Try again.\n"; &blast();}
-        print "Pick the reference sequence(select by number):";
-        chomp($input_R = <STDIN>);
-        unless ($input_R =~ /^\d+$/ && $input_R <= $count){print "No such sequence exist. Try again.\n"; &blast();}
 
-        while ($input_Q == $input_R){
+        ##讓使用者輸入blast程式的路徑
+        print"enter the direct path of blast application (use whereis blastn to check the path):\n";
+        my $path = <STDIN>;
+        chomp $path;
+        ##確認input sequence
+        print "\nHere are the sequences you have inputted:\n";
+        for (my $x = 0; $x < @name;$x++){
+                print"($x)\t $name[$x]\n";
+        }
+        while(1){
+                print "Pick the query sequence:\n";
+                $input_Q = <STDIN>;
+                if (exists $data{$name[$input_Q]}){last;}else{
+                        print"No such sequence exist. Try again.\n";
+                        next;
+        } 
+        }
+        
+        #unless ($input_Q =~ /^\d+$/ && $input_Q <= $count){print "No such sequence exist. Try again.\n"; &blast();}
+        while(1){
+                print "Enter the file name of reference data (ex:example.fasta):\n";
+                chomp($input_R = <STDIN>);
+                if (-e "$input_R"){last;}else{
+                        print"No such file in the current path. Try again.\n";
+                        next;
+        } 
+        }
+        while ($input_Q eq $input_R){
                 print "You sure you want to blast the sequence with itself? (Yes or No)";
                 chomp($choice = <STDIN>);
                 if ($choice eq "No"){print "Ok, try again.\n"; &blast();}
@@ -205,10 +223,14 @@ sub blast {
                 }
 
         $query = $ref = "";
-        $query = $seq[$input_Q-1];
-        $ref = $seq[$input_R-1];
-        print "Query file: $query\n";
-        print "Reference file: $ref\n";
+        $query = $data{$name[$input_Q]}; 
+        #將query 序列寫入fsa
+        open ($FILE, ">", "query.fa");
+        print $FILE ">$name[$input_Q]\n";
+        print $FILE "$query\n";
+
+        ##
+
 
         unless (-d './blast_output_dir') {
                 system("mkdir blast_output_dir");
@@ -216,14 +238,18 @@ sub blast {
         unless (-d './blast_db_dir') {
                 system("mkdir blast_db_dir");
         }
-
+        #將兩fasta file移置新資料夾中
+        system("cp $input_R ./blast_db_dir/$input_R");
         #/home/youylin/PERL/NCBI_BLAST/ncbi-blast-2.13.0/bin
-        system ("/home/youylin/PERL/NCBI_BLAST/ncbi-blast-2.13.0/bin/makeblastdb -in $ref -dbtype nucl -out ./blast_db_dir/$ref");
+        system ("$path/makeblastdb -in $input_R -dbtype nucl -parse_seqids -out ./blast_db_dir/blast_db_dir");
         $output = "blast_SEQ$input_Q"."SEQ$input_R.txt";
-        system ("/home/youylin/PERL/NCBI_BLAST/ncbi-blast-2.13.0/bin/blastn -db ./blast_db_dir/$ref -query $query -outfmt 6 -out ./blast_output_dir/$output");
-        
+        system ("$path/blastn -db ./blast_db_dir/blast_db_dir -query query.fa -outfmt 6 -out ./blast_output_dir/test_results.txt");
+        print"\n\n\e[32mBlast process has finished, please check the result in blast_output_dir.\n";
+        print "\n\e[0mPress enter to continue...\n";
+        <STDIN>;
         $option = 0;
-        return;
+        return $option;
+
 }
 
 
@@ -233,13 +259,14 @@ sub reverse_complement {
                 print "Please input data first.\n";
                 &input();
         }
-        for $key (sort {$a <=> $b} keys %data){
+        for $key (sort {$a cmp $b} keys %data){
                 $seq = $data{$key};
-                print "$name{$key}\n";
-                print "Sequence Input:     $seq\n";
+                print "\e[31mSequence Input: $key\n";
+                print"\e[0m$seq\n";
                 $seq =~ tr/ATCGBVDHKMRYSW/TAGCVBHDMKYRSW/; 
                 $rcseq = reverse $seq;
-                print "Reverse Compliment: $rcseq\n";
+                print "\e[31mReverse Compliment:\n";
+                print"\e[0m$rcseq\n";
         }
         $option = 0;
         return;
@@ -261,7 +288,7 @@ sub amino {
                 if ( $input_2 == 1 || $input_2 == 2 || $input_2 ==3){
                         for $keys (sort {$a cmp $b}keys %data){
                                 $seq = $data{$keys};
-                                print"$name{$keys}:\n";
+                                print"\e[31m>$keys\n";
 
                                 for($x = ($input_2 - 1); $x + 3 <= length$seq; $x +=3 ){
                                         $codon = substr($seq,$x,3);
@@ -286,7 +313,7 @@ sub amino {
                                         $codon =~ s/AAA|AAG/K/;
                                         $codon =~ s/CGT|CGC|CGA|CGG|AGA|AGG/R/;
                                         $codon =~ s/TAA|TAG|TGA/\*/;
-                                        print"$codon";
+                                        print"\e[0m$codon";
 
                                 }
                                 print"\n";
@@ -297,7 +324,7 @@ sub amino {
                                 $seq = $data{$keys};
                                 $seq =~tr/ATCG/TAGC/;
                                 $rev_seq = reverse $seq;
-                                print"$keys:\n";
+                                print"\e[31m>$keys\n";
 
                                 for($y = (abs($input_2) - 1); $y + 3 <= length $rev_seq; $y +=3 ){
                                         $codon = substr($rev_seq,$y,3);
@@ -322,15 +349,17 @@ sub amino {
                                         $codon =~ s/AAA|AAG/K/;
                                         $codon =~ s/CGT|CGC|CGA|CGG|AGA|AGG/R/;
                                         $codon =~ s/TAA|TAG|TGA/\*/;
-                                        print"$codon";
+                                        print"\e[0m$codon";
 
                                 }
                                 print"\n";
                         }
                         last;
-                }else {print"you idiot\n";}
+                }else {print"invalid input number\n";$option = 6;return $option;}
 
         }
+        print "\n\nPress enter to continue...\n";
+        <STDIN>;
         $option = 0;
         return;
 }
@@ -348,7 +377,7 @@ sub GC_content {
                 $num = $data{$keys} =~ tr/GC//;
                 $length = length$data{$keys};
                 $gc_cont{$keys} = ($num / $length) * 100;
-                print"$name{$keys}\t $gc_cont{$keys}% \n";
+                print"\e[31m>$keys\n \e[0m$gc_cont{$keys}% \n";
         }
         $option = 0;
         return;
