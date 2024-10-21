@@ -1,5 +1,5 @@
 # my_work
-## introduction to my_work directory
+## Introduction to my_work directory
 This directory was created by Steven Lin (whps.happy@gmail.com) to store a collection of works written in various programming languages. Each script serves a unique function and can be applied in the field of bioinformatics. It includes scripts written in languages such as Linux, Perl, and R： <br>
 ### -Linux
 This folder contains three .sh executable files, whose main functions are to perform quality control, alignment, and variant calling steps in the NGS (Next Generation Sequencing) variant calling process within a Linux environment. <br>
