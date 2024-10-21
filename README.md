@@ -1,4 +1,8 @@
-# my_work
+# 林冠瑜 (Lin Guan Yu)
+-Birth: 1999/12/24 <br>
+-Education: Bachelor & Master of Science in department of Agronomy (Specialized in genetic breeding) <br>
+-email: whps.happy@gmail.com<br>
+-contact: 0909395573<br>
 ## Introduction to my_work directory
 This directory was created by Steven Lin (whps.happy@gmail.com) to store a collection of works written in various programming languages. Each script serves a unique function and can be applied in the field of bioinformatics. It includes scripts written in languages such as Linux, Perl, and R： <br>
 ### -Linux
