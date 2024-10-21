@@ -1,10 +1,10 @@
-# 林冠瑜 (Lin Guan Yu)
+# 林冠瑜 (Steven Lin)
 -Birth: 1999/12/24 <br>
--Education: Bachelor & Master of Science in department of Agronomy (Specialized in genetic breeding) <br>
--email: whps.happy@gmail.com<br>
--contact: 0909395573<br>
+-Education: Bachelor & Master of Science in Department of Agronomy (genetic breeding) <br>
+-Email: whps.happy@gmail.com<br>
+-Contact: 0909395573<br>
 ## Introduction to my_work directory
-This directory was created by Steven Lin (whps.happy@gmail.com) to store a collection of works written in various programming languages. Each script serves a unique function and can be applied in the field of bioinformatics. It includes scripts written in languages such as Linux, Perl, and R： <br>
+This directory was created by Steven Lin to store a collection of works written in various programming languages. Each script serves a unique function and can be applied in the field of bioinformatics. It includes scripts written in languages such as Linux, Perl, and R： <br>
 ### -Linux
 This folder contains three .sh executable files, whose main functions are to perform quality control, alignment, and variant calling steps in the NGS (Next Generation Sequencing) variant calling process within a Linux environment. <br>
 ### -Perl
