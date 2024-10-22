@@ -1,7 +1,7 @@
 ##############################################################################################################################
-#this code is made for the generation of fasta file of recombination hotspots
+#this code is made for the generation of fasta file for given intervals
 
-#Input: (1) ABH form genotype file (2) breakpoint file (3) reference genome fasta (4) hotspot location files
+#Input: (1) ABH form genotype file (2) reference fasta file
 #Output: fasta file of each hotspot intervals
 ##############################################################################################################################
 library(vcfR)
@@ -11,31 +11,17 @@ library(seqinr)
 ###snp matrix
 abh_geno <- read.csv("C:/Users/lingo1st/Dropbox/林冠瑜/gbs_dataset_result/csv file/gbs_abhgenotype.csv",header = T)
 
-############叫出bkpt
-breakpoint <- read.csv("C:/Users/lingo1st/Dropbox/林冠瑜/gbs_dataset_result/csv file/gbs_breakpoint.csv",header = T)
-
+############叫出reference fasta data
 data <- read.fasta("C:/Users/lingo1st/Dropbox/碩論/np ir64/REF_genome.fa/OsNB1.0.fa")
 
-#########建立熱點區間 (加入overlapped interval)
-overlap_hotspot <- read.csv("C:/Users/lingo1st/Dropbox/林冠瑜/gbs_dataset_result/csv file/gbs_overlap_hotspot.csv",header = T)
-poisson_hotspot <- read.csv("C:/Users/lingo1st/Dropbox/林冠瑜/gbs_dataset_result/csv file//poisson hotspot/gbs_adjusted_poisson_hotspot.csv",header = T)
-local_hotspot <- read.csv("C:/Users/lingo1st/Dropbox/林冠瑜/gbs_dataset_result/csv file/local_recomb_hotspot/gbs_nonoverlap_local_hotspot.csv",header = T)
 
-#names(local_hotspot)[names(local_hotspot) == "map"] <- "chr"
-#local_hotspot$chr <- gsub("chr","",local_hotspot$chr)
-###綜合成hotspot_interval
-hotspot_interval <- rbind(local_hotspot[,c(1,2,3)],poisson_hotspot[,c(1,3,4)],overlap_hotspot[,c(1,2,3)])
-hotspot_interval$type <- rep(c("local","poisson","overlap"),times = c(6,10,3))
-hotspot_interval$chr <- as.numeric(hotspot_interval$chr)
 ###################################################################################################################
-
+##argument example
 chr = 7
 one_side_length = 50000
-output_path
 vcf_reffas_path= "C:/Users/lingo1st/OneDrive/桌面/NOISYmputer/NOISYmputer_data"
 vcf_name="gbs_r.chr"
 position = 1050001
-dir.create("C:/Users/lingo1st/Dropbox/林冠瑜/gbs_dataset_result/hotspot_fasta_2")
 setwd("C:/Users/lingo1st/Dropbox/林冠瑜/gbs_dataset_result/hotspot_fasta_2")
 
 
@@ -112,63 +98,14 @@ fas_generate <- function(chr,position,one_side_length ,vcf_name =NA,ref_data, vc
   cat("file:",paste0(position-one_side_length,"_",position+one_side_length,".fasta"),"created","\n")
 }
 
-#################running the function
-#### local
+#################running the function##############################
 setwd("C:/Users/lingo1st/Dropbox/林冠瑜/gbs_dataset_result")
 
-for (i in 1:6) {
+for (i in 1:nrow(hotspot_interval)) {
   fas_generate(chr = hotspot_interval$chr[i],
                position = round((hotspot_interval$start[i]+hotspot_interval$end[i])/2,0),
                one_side_length = round((hotspot_interval$start[i]+hotspot_interval$end[i])/2,0) - hotspot_interval$start[i],
                vcf_name="final_sample_plus_parent.chr",
-               vcf_reffas_path= "C:/Users/lingo1st/OneDrive/桌面/NOISYmputer/NOISYmputer_data",
-               ref_data = data)
-}
-
-###overlap
-setwd()
-for (i in 178:198) {
-  fas_generate(chr = hotspot_interval$chr[i],
-               position = round((hotspot_interval$start[i]+hotspot_interval$end[i])/2,0),
-               one_side_length = round((hotspot_interval$start[i]+hotspot_interval$end[i])/2,0) - hotspot_interval$start[i],
-               vcf_name="gbs_r.chr",
-               vcf_reffas_path= "C:/Users/lingo1st/OneDrive/桌面/NOISYmputer/NOISYmputer_data",
-               ref_data = data)
-}
-
-for (i in 1:93) {
-  fas_generate(chr = poisson_hotspot$chr[i],
-               position = round((poisson_hotspot$start[i]+poisson_hotspot$end[i])/2,0),
-               one_side_length = round((poisson_hotspot$start[i]+poisson_hotspot$end[i])/2,0) - poisson_hotspot$start[i],
-               vcf_name="gbs_r.chr",
-               vcf_reffas_path= "C:/Users/lingo1st/OneDrive/桌面/NOISYmputer/NOISYmputer_data",
-               ref_data = data)
-}
-
-####產生random區間
-
-ram_chr = rep(1:12,2)
-ram_start <- c()
-for (i in 1:24) {
-  repeat {
-    position = as.numeric(sample(1000:length(data[[ram_chr[i]]]),1,replace = F))
-    
-    #如果position的位置沒有出現在熱點區間內，就停止抽取
-    if (  length(which(apply(hotspot_interval %>% filter(chr == i),1,function(x){
-      between(position,as.numeric(x[2]),as.numeric(x[3]))})))==0 ) {
-      cat("random site:",position,"\n")
-      ram_start <- c(ram_start,position)
-      break
-    } else {next}
-  }
-}
-
-ramdom_interval <- data.frame(chr = ram_chr, start = ram_start, end = ram_start+5000)
-for (i in 1:24) {
-  fas_generate(chr = ramdom_interval$chr[i],
-               position = round((ramdom_interval$start[i]+ramdom_interval$end[i])/2,0),
-               one_side_length = round((ramdom_interval$start[i]+ramdom_interval$end[i])/2,0) - ramdom_interval$start[i],
-               vcf_name="gbs_r.chr",
                vcf_reffas_path= "C:/Users/lingo1st/OneDrive/桌面/NOISYmputer/NOISYmputer_data",
                ref_data = data)
 }
