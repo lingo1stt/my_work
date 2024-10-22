@@ -43,37 +43,4 @@ for (j in 1:12 ) {
       "chr",j,"distance: ",max(distance),"\n")
 }
 
-
-
-############異質結合 ################# (noisymputer中只計算0/1而沒有計算1/0)
-data <- read.vcfR("C:/Users/lingo1st/OneDrive/桌面/NOISYmputer/NOISYmputer_data/gbs_T.chr1.vcf")
-data_gt <- as.data.frame(data@gt)
-
-het_df <- matrix(NA,nrow = 12,ncol = 322)
-colnames(het_df) <- colnames(data_gt[,-1])
-for (i in 1:12) {
-  data <- read.vcfR(paste0("C:/Users/lingo1st/Onedrive/桌面/NOISYmputer/NOISYmputer_data/gbs.chr",i,".vcf"),verbose = F)
-  data_gt <- data@gt
-  data_gt <- as.data.frame(data_gt)
-  het_df[i,] <- apply(data_gt[,-1],2,function(x){
-    round((length(which(x == "0/1"| x == "1/0"))/ nrow(data_gt))*100,2)
-  })
-  }
-write.csv(het_df, file ="C:/Users/lingo1st/Onedrive/桌面/gbs_heterozygosity.csv",row.names = F )
-
-
-####綜合het
-data <- read.vcfR("C:/Users/lingo1st/Dropbox/林冠瑜/final.vcf/gbs_data.vcf")
-data_gt <- as.data.frame(data@gt)
-het_whole <- apply(data_gt[,-1],2,function(x){
-  round((length(which(x == "0/1"| x == "1/0"))/ nrow(data_gt))*100,2)
-})
-het_whole[order(het_whole)]
-
-colnames(data_gt)
-length(het_whole[het_whole>5])
-#####
-write.csv(colnames(data_gt[,-1]), file = "C:/Users/lingo1st/Dropbox/林冠瑜/name.csv") 
-
-
 #########################
