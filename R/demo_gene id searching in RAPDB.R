@@ -6,25 +6,9 @@ library("magrittr")
 library("RSelenium")
 library("dplyr")
 
-###熱點區間
-###snp matrix
-abh_geno <- read.csv("C:/Users/lingo1st/Dropbox/林冠瑜/gbs_dataset_result/csv file/gbs_abhgenotype.csv",header = T)
+#########建立區間 
+interval <- read.csv("C:/Users/lingo1st/Dropbox/林冠瑜/gbs_dataset_result/csv file/gbs_overlap_hotspot.csv",header = T)
 
-############叫出bkpt
-breakpoint <- read.csv("C:/Users/lingo1st/Dropbox/林冠瑜/gbs_dataset_result/csv file/gbs_breakpoint.csv",header = T)
-
-
-#########建立熱點區間 (加入overlapped interval)
-overlap_hotspot <- read.csv("C:/Users/lingo1st/Dropbox/林冠瑜/gbs_dataset_result/csv file/gbs_overlap_hotspot.csv",header = T)
-poisson_hotspot <- read.csv("C:/Users/lingo1st/Dropbox/林冠瑜/gbs_dataset_result/csv file//poisson hotspot/gbs_poisson_hotspot.csv",header = T)
-local_hotspot <- read.csv("C:/Users/lingo1st/Dropbox/林冠瑜/gbs_dataset_result/csv file/local_recomb_hotspot/gbs_nonoverlap_local_hotspot.csv",header = T)
-
-#names(local_hotspot)[names(local_hotspot) == "map"] <- "chr"
-#local_hotspot$chr <- gsub("chr","",local_hotspot$chr)
-###綜合成hotspot_interval
-hotspot_interval <- rbind(local_hotspot[,c(1,2,3)],poisson_hotspot[,c(1,4,5)],overlap_hotspot[,c(1,2,3)])
-hotspot_interval$type <- rep(c("local","poisson","overlap"),times = c(25,93,21))
-hotspot_interval$chr <- as.numeric(hotspot_interval$chr)
 
 
 # 打開瀏覽器
@@ -47,7 +31,7 @@ btn2 <- remDr$findElement(using = "xpath", value = path2)
 btn2$clickElement()
 Sys.sleep(5)
 
-for (i in 1:nrow(hotspot_interval)) {
+for (i in 1:nrow(interval)) {
   
   
   ###input for chr postion
@@ -56,7 +40,7 @@ for (i in 1:nrow(hotspot_interval)) {
   btn3 <- remDr$findElement(using = "xpath", value = path3)
   btn3$clickElement()
   btn3$clearElement()
-  text <- list(paste0("chr",hotspot_interval$chr[i],":",hotspot_interval$start[i],"..",hotspot_interval$end[i]) , key = "enter")
+  text <- list(paste0("chr",interval$chr[i],":",interval$start[i],"..",interval$end[i]) , key = "enter")
   btn3$sendKeysToElement(text)
   Sys.sleep(4)
   #把gene locus顯示功能打開
@@ -131,6 +115,6 @@ for (i in 1:length(matching_files)) {
 
 poisson_gene_df <- data.frame(chr = rep(chr,times = gene_amount),gene = all_genes)
 
-write.csv(all_genes,file = paste0(path_wd,"/","gene id(poisson).txt"),row.names = F,quote = F)
+write.csv(all_genes,file = paste0(path_wd,"/","gene id.txt"),row.names = F,quote = F)
 
 
