@@ -1,11 +1,37 @@
 #### Quality control ############
 ##write a for loop to conduct fastQC and trimmomatic at the same time
+run_fastqc() {
+  if [ -z "$1" ]; then
+        echo "please provide file name。"
+        return 1
+  fi
+  ###執行
+  echo "run FastQC: $1"
+    for file in L*.fq.gz
+    do
+	    if [ -e "$file"]; then
+		    fastqc "$file"
+	    else 
+		    echo "NO files existed"
+	    fi
+    done
+ 
+}
 
-wget https://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v0.11.9.zip
-unzip fastqc_v0.11.9.zip
-export PATH=$PATH:~/FastQC/
 
-fastqc -h
+whereis fastqc > check.txt
+if ! grep -q "/" check.txt ; then
+  read -p "Do you want to install FastQC？(y/n): " answer
+  if [[ $answer == "y" || $answer == "Y" ]]; then
+    sudo apt install fastqc
+    echo -e "Enter file name with regular expression (ex:*.fq.gz):"
+    read answer_2
+    run_fastqc "$answer_2"
+	fi
+else
+  echo -e "cannot conduct fastqc, jump to next step \n"
+fi
+
 
 for file in L*.fq.gz
 do
