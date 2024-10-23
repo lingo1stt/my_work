@@ -14,5 +14,12 @@ samtools index L294_sorted.bam
 ### using gatk to validate the avialibility of bam file
 cd ~/gatk-4.3.0.0
 source /sharedata/MISC/setJava8.bsh
-java -jar gatk-package-4.3.0.0-local.jar ValidateSamFile -I ~/samtools-1.9/L294_sorted.bam -M SUMMARY
+
+error="error_output.txt"
+java -jar gatk-package-4.3.0.0-local.jar ValidateSamFile -I ~/samtools-1.9/L294_sorted.bam -M SUMMARY -O output.txt 2> "$error"
+if [ $? -ne 0 ]
+then 
+    echo -e "Something went wrong for the bam file, please check $error .txt"
+    exit 1
+fi
 
