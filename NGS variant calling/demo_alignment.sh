@@ -11,7 +11,7 @@ samtools view -hb ~/bwa-0.7.15/L294_output.sam -o L294.bam
 samtools sort L294.bam -o L294_sorted.bam
 samtools index L294_sorted.bam
 
-### using gatk to validate the avialibility of bam file
+### using gatk to validate the avialibility of bam file, if sth went wrong, then the script will terminate
 cd ~/gatk-4.3.0.0
 source /sharedata/MISC/setJava8.bsh
 
