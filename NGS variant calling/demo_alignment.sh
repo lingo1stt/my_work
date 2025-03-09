@@ -16,6 +16,7 @@ cd ~/gatk-4.3.0.0
 source /sharedata/MISC/setJava8.bsh
 
 error="error_output.txt"
+#redirect the error message to error_output.txt
 java -jar gatk-package-4.3.0.0-local.jar ValidateSamFile -I ~/samtools-1.9/L294_sorted.bam -M SUMMARY -O output.txt 2> "$error"
 if [ $? -ne 0 ]
 then 
