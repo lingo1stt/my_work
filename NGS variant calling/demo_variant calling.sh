@@ -18,7 +18,9 @@ java -jar gatk-package-4.3.0.0-local.jar HaplotypeCaller -R ~/OsNB1.0.fa -I L294
 
 ### do haplotype calling using HaplotypeCaller with multiple threads
 mkdir "gvcf"
+### find all the bam file and put their name into bam_name.txt
 find . -type f -name "*.bam" > bam_name.txt
+##in parallel command {.} will only keep the file name but not their file extension(ex:sample1.bam --> sample1)
 cat bam_name.txt | parallel -j 8 "java -jar gatk-package-4.3.0.0-local.jar HaplotypeCaller -R ~/OsNB1.0.fa -I {} -O ~/gatk-4.3.0.0/gvcf/{.}.gvcf -ERC GVCF"
 
 
